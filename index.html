@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <title>PE&#923;K DISCH&#923;RGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<script src="js/Tone.js"></script>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/draggabilly.js"></script>
+	<script src="js/StartAudioContext.js"></script>
+	<script src="js/Interface.js"></script>
+</head>
+<body>
+    <div id="#output" class="main">
+        <h1>PE&#923;K DISCH&#923;RGE</h1>
+    </div>
+	<script>
+        function playSample(H20value) {
+            wavFile = "media/water.mp3";
+            //var crusher = new Tone.BitCrusher(bitDepth).toMaster();
+            var crusher = new Tone.BitCrusher(4).toMaster();
+            $('.main').append('<p>Distorting By: ' + H20value + '</p>');
+            var sampler = new Tone.Sampler(wavFile, function(){
+                //repitch the sample down a half step
+                sampler.envelope.attack = 10;
+                sampler.envelope.release = 10;
+                sampler.triggerAttack(-2,"+0.1", 0.5);
+                //sampler.loop = true;
+                sampler.connect(crusher);
+            }).toMaster();
+        }
+        
+        function loadH2OData(){
+         $.getJSON("https://waterservices.usgs.gov/nwis/iv/?sites=01474501&period=P7D&format=json", 
+              function(data) {
+                    cnt++;
+                    $('.main').append('<hr/>');
+                    $('.main').append('<p>Time: ' + data.value.timeSeries[0].values[0].value[cnt].dateTime + '</p>');
+                    $('.main').append('<p>Data: ' + data.value.timeSeries[0].values[0].value[cnt].value + '</p>');
+                    playSample(data.value.timeSeries[0].values[0].value[cnt].value);
+                    
+              }); 
+         setTimeout("loadH2OData()",10000);
+        }
+        
+        $(".main").append( "<p>Starting</p>" );
+        
+        cnt=0;
+        loadH2OData();
+        
+        
+        
+        
+        
+        
+		
+	</script>
+
+</body>
+</html>
