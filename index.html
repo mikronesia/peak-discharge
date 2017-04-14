@@ -17,15 +17,12 @@
 	<script>
         function playSample(H20value) {
             wavFile = "media/water.mp3";
-            //var crusher = new Tone.BitCrusher(bitDepth).toMaster();
             var crusher = new Tone.BitCrusher(4).toMaster();
             $('.main').append('<p>Distorting By: ' + H20value + '</p>');
             var sampler = new Tone.Sampler(wavFile, function(){
-                //repitch the sample down a half step
                 sampler.envelope.attack = 10;
                 sampler.envelope.release = 10;
                 sampler.triggerAttack(-2,"+0.1", 0.5);
-                //sampler.loop = true;
                 sampler.connect(crusher);
             }).toMaster();
         }
@@ -47,13 +44,6 @@
         
         cnt=0;
         loadH2OData();
-        
-        
-        
-        
-        
-        
-		
 	</script>
 
 </body>
