@@ -9,38 +9,69 @@
 	<script src="js/draggabilly.js"></script>
 	<script src="js/StartAudioContext.js"></script>
 	<script src="js/Interface.js"></script>
+    <style>
+    body {
+      margin: 0;
+      background: #000; 
+    }
+    video { 
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -100;
+        transform: translateX(-50%) translateY(-50%);
+        background: url('media/pd-video-loop.mp4') no-repeat;
+        background-size: cover;
+        transition: 1s opacity;
+    }
+    body {
+        color:#fff;
+        font-family: "Courier New";
+        margin-left:20px;
+    }
+    </style>
 </head>
+<video poster="media/pd-screen.png" id="bgvid" playsinline autoplay muted loop>
+    <source src="media/pd-video-loop.mp4" type="video/mp4">
+</video>
 <body>
+    <h1>PE&#923;K DISCH&#923;RGE</h1>
     <div id="#output" class="main">
-        <h1>PE&#923;K DISCH&#923;RGE</h1>
     </div>
 	<script>
         function playSample(H20value) {
             wavFile = "media/water.mp3";
-            var crusher = new Tone.BitCrusher(4).toMaster();
-            $('.main').append('<p>Distorting By: ' + H20value + '</p>');
+            H20value = Math.abs(H20value);
+            bitCrushAmt = 10 - (H20value);
+            var crusher = new Tone.BitCrusher(bitCrushAmt).toMaster();
             var sampler = new Tone.Sampler(wavFile, function(){
-                sampler.envelope.attack = 10;
-                sampler.envelope.release = 10;
-                sampler.triggerAttack(-2,"+0.1", 0.5);
-                sampler.connect(crusher);
+            sampler.envelope.attack = 10;
+            sampler.envelope.release = 10;
+            crusher.wet(0.5);
+            sampler.triggerAttack(-2,"+0.1", 0.5);
+            var reverb = new Tone.JCReverb(H20value/5).connect(Tone.Master);
+            var delay = new Tone.FeedbackDelay(H20value/5); 
+            //connecting the synth to reverb through delay
+            sampler.chain(delay, reverb);
+            sampler.connect(crusher);
             }).toMaster();
         }
         
         function loadH2OData(){
-         $.getJSON("https://waterservices.usgs.gov/nwis/iv/?sites=01474501&period=P7D&format=json", 
+            $.getJSON("https://waterservices.usgs.gov/nwis/iv/?sites=01474501&period=P1D&format=json", 
               function(data) {
                     cnt++;
-                    $('.main').append('<hr/>');
-                    $('.main').append('<p>Time: ' + data.value.timeSeries[0].values[0].value[cnt].dateTime + '</p>');
-                    $('.main').append('<p>Data: ' + data.value.timeSeries[0].values[0].value[cnt].value + '</p>');
+                    $('.main').prepend('<p>time: ' + data.value.timeSeries[0].values[0].value[cnt].dateTime + '</p>');
+                    $('.main').prepend('<p>data: ' + data.value.timeSeries[0].values[0].value[cnt].value + '</p>');
                     playSample(data.value.timeSeries[0].values[0].value[cnt].value);
-                    
-              }); 
-         setTimeout("loadH2OData()",10000);
+                    $('.main').prepend('<hr/>');
+                }); 
+            setTimeout("loadH2OData()",10000);
         }
-        
-        $(".main").append( "<p>Starting</p>" );
         
         cnt=0;
         loadH2OData();
